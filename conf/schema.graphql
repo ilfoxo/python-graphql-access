@@ -1,0 +1,202 @@
+input CreateProductInput {
+	id: ID
+	name: String!
+	description: String
+	image: String!
+	category: String!
+}
+
+input DeleteProductInput {
+	id: ID
+}
+
+enum ModelAttributeTypes {
+	binary
+	binarySet
+	bool
+	list
+	map
+	number
+	numberSet
+	string
+	stringSet
+	_null
+}
+
+input ModelBooleanInput {
+	ne: Boolean
+	eq: Boolean
+	attributeExists: Boolean
+	attributeType: ModelAttributeTypes
+}
+
+input ModelFloatInput {
+	ne: Float
+	eq: Float
+	le: Float
+	lt: Float
+	ge: Float
+	gt: Float
+	between: [Float]
+	attributeExists: Boolean
+	attributeType: ModelAttributeTypes
+}
+
+input ModelIDInput {
+	ne: ID
+	eq: ID
+	le: ID
+	lt: ID
+	ge: ID
+	gt: ID
+	contains: ID
+	notContains: ID
+	between: [ID]
+	beginsWith: ID
+	attributeExists: Boolean
+	attributeType: ModelAttributeTypes
+	size: ModelSizeInput
+}
+
+input ModelIntInput {
+	ne: Int
+	eq: Int
+	le: Int
+	lt: Int
+	ge: Int
+	gt: Int
+	between: [Int]
+	attributeExists: Boolean
+	attributeType: ModelAttributeTypes
+}
+
+input ModelProductConditionInput {
+	name: ModelStringInput
+	description: ModelStringInput
+	image: ModelStringInput
+	category: ModelStringInput
+	and: [ModelProductConditionInput]
+	or: [ModelProductConditionInput]
+	not: ModelProductConditionInput
+}
+
+type ModelProductConnection @aws_api_key
+@aws_cognito_user_pools {
+	items: [Product]
+	nextToken: String
+}
+
+input ModelProductFilterInput {
+	id: ModelIDInput
+	name: ModelStringInput
+	description: ModelStringInput
+	image: ModelStringInput
+	category: ModelStringInput
+	and: [ModelProductFilterInput]
+	or: [ModelProductFilterInput]
+	not: ModelProductFilterInput
+}
+
+input ModelSizeInput {
+	ne: Int
+	eq: Int
+	le: Int
+	lt: Int
+	ge: Int
+	gt: Int
+	between: [Int]
+}
+
+enum ModelSortDirection {
+	ASC
+	DESC
+}
+
+input ModelStringInput {
+	ne: String
+	eq: String
+	le: String
+	lt: String
+	ge: String
+	gt: String
+	contains: String
+	notContains: String
+	between: [String]
+	beginsWith: String
+	attributeExists: Boolean
+	attributeType: ModelAttributeTypes
+	size: ModelSizeInput
+}
+
+input ModelStringKeyConditionInput {
+	eq: String
+	le: String
+	lt: String
+	ge: String
+	gt: String
+	between: [String]
+	beginsWith: String
+}
+
+type Mutation {
+	createProduct(input: CreateProductInput!, condition: ModelProductConditionInput): Product
+		@aws_api_key
+@aws_cognito_user_pools
+	updateProduct(input: UpdateProductInput!, condition: ModelProductConditionInput): Product
+		@aws_api_key
+@aws_cognito_user_pools
+	deleteProduct(input: DeleteProductInput!, condition: ModelProductConditionInput): Product
+		@aws_api_key
+@aws_cognito_user_pools
+}
+
+type Product @aws_api_key
+@aws_cognito_user_pools {
+	id: ID!
+	name: String!
+	description: String
+	image: String!
+	category: String!
+}
+
+type Query {
+	getProduct(id: ID!): Product
+		@aws_api_key
+@aws_cognito_user_pools
+	listProducts(filter: ModelProductFilterInput, limit: Int, nextToken: String): ModelProductConnection
+		@aws_api_key
+@aws_cognito_user_pools
+	productByCatName(
+		category: String,
+		name: ModelStringKeyConditionInput,
+		sortDirection: ModelSortDirection,
+		filter: ModelProductFilterInput,
+		limit: Int,
+		nextToken: String
+	): ModelProductConnection
+		@aws_api_key
+@aws_cognito_user_pools
+}
+
+type Subscription {
+	onCreateProduct: Product
+		@aws_subscribe(mutations: ["createProduct"])
+@aws_api_key
+@aws_cognito_user_pools
+	onUpdateProduct: Product
+		@aws_subscribe(mutations: ["updateProduct"])
+@aws_api_key
+@aws_cognito_user_pools
+	onDeleteProduct: Product
+		@aws_subscribe(mutations: ["deleteProduct"])
+@aws_api_key
+@aws_cognito_user_pools
+}
+
+input UpdateProductInput {
+	id: ID!
+	name: String
+	description: String
+	image: String
+	category: String
+}

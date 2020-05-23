@@ -1,12 +1,31 @@
-from qlaccess.qlaccess import *
-from gql import gql
 import json
 import sys
 import urllib3
+from conf import config
+from python_graphql_client import GraphqlClient
+import requests
+import os
 
 urllib3.disable_warnings()
 
+headers = {
+    # 'Content-Type': "application/graphql",
+    'x-api-key': config.API_KEY,
+    'cache-control': 'no-cache'
+}
+
+client = GraphqlClient(endpoint="http://localhost:20002/graphql", headers=headers)
+
 def progress(count, total, status=''):
+
+    """
+    Como usarlo:
+
+        for i in range(10):
+        progress(i+1, 10, status="Descargando")
+        time.sleep(1)
+    """
+
     bar_len = 60
     filled_len = int(round(bar_len * count / float(total)))
 
@@ -15,36 +34,41 @@ def progress(count, total, status=''):
 
     sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
     sys.stdout.flush()
+    if count == total:
+        print()
 
 def deleteAll():
 
-    query = gql(''' query {
-        listProducts {
-            items {
-            id
+    query = ''' 
+        query listProducts {
+            listProducts {
+                items {
+                    id
+                }
             }
-        }
-    }''')
-    data = client.execute(query)
+        }'''
 
-    while len(data["listProducts"]["items"]) > 0:
+    data = client.execute(query=query)
+
+    while len(data["data"]["listProducts"]["items"]) > 0:
         if "error" in data:
             print("Error al obtener información")
             return
 
-        data = data["listProducts"]["items"]
-        query2 = gql('''
-               mutation deleteProduct($input: DeleteProductInput!) {
+        data = data["data"]["listProducts"]["items"]
+        query2 = '''
+             mutation deleteProduct($input: DeleteProductInput!) {
                 deleteProduct(input: $input) {
                     id
                 }
             }
-            ''')
+            '''
+
         for item in data:
             params = {
                 "input": item
             }
-            res = client.execute(query2, variable_values=params)
+            res = client.execute(query2, variables=params)
         data = client.execute(query)
     print("Delete Finished!")
 
@@ -59,32 +83,36 @@ def loadData():
              }
             for i, item in enumerate(data)]
 
-    query = gql('''
-           mutation createProduct($input: CreateProductInput!) {
+    query = """
+        mutation createProduct($input: CreateProductInput!) {
             createProduct(input: $input) {
                 id
-      	        name
-      	        description
-      	        image
-      	        category
+  	            name
+  	            description
+  	            image
+  	            category
             }
         }
-        ''')
+      """
 
     for i, item in enumerate(data):
         progress(i, len(data), status="Working...")
         params = {
             "input": item
         }
-        res = client.execute(query, variable_values=params)
-        if "id" not in res["createProduct"]:
+        res = client.execute(query=query, variables=params)
+        if "id" not in res["data"]["createProduct"]:
             print("Error al cargar: " + json.dumps(res))
         else:
-            print(str(i) + " - " + res["createProduct"]["id"])
+            print(str(i) + " - " + res["data"]["createProduct"]["id"])
 
     print("Finished!")
 
 
 
 if __name__ == '__main__':
-    loadData()
+    #loadData()
+    #deleteAll()
+
+
+

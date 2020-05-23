@@ -1,10 +1,22 @@
 import requests
-import time
+import os
 import json
 
 """
     Obtiene url de las fotos del sitio de perros
 """
+
+def downloadFile(url: str):
+    filename = url.split('/')[len(url.split('/')) - 1]
+
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        with open(os.path.join('downloaded_files', filename), 'wb') as r:
+            r.write(resp.content)
+    else:
+        print("Error al descargar archivo: " + url)
+
+
 
 categorias = ["borzoi", "boxer", "chow", "dingo"]
 contenedor = list()
@@ -21,6 +33,7 @@ for categoria in categorias:
             else:
                 continue
         print(str(i) + " - " + data.json()['message'])
+        downloadFile(data.json()['message'])
         # time.sleep(0)
 res = [{"image": contenedor[i]} for i in range(0, len(contenedor))]
 

@@ -1,6 +1,10 @@
 
 # Created by https://www.gitignore.io/api/osx,linux,python,windows,pycharm,visualstudiocode
 
+### Personales ###
+downloaded_files/
+dependencies/
+
 ### Linux ###
 *~
 
